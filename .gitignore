@@ -50,6 +50,7 @@ mongodb/*.lock
 *.ntvs*
 *.njsproj
 *.sln
+Rules.md
 
 # OS files
 .DS_Store
