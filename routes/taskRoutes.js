@@ -1,10 +1,11 @@
 import express from "express";
 import { Task } from "../models/Task.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Create a Task
-router.post("/", async (req, res) => {
+router.post("/", protect, async (req, res) => {
     try {
         const { title, description, status, dueDate } = req.body;
 
@@ -37,7 +38,7 @@ router.get("/", async (req, res) => {
 });
 
 // Update a Task
-router.put("/:id", async (req, res) => {
+router.put("/:id", protect, async (req, res) => {
     try {
         const { title, description, status, dueDate } = req.body;
         const updatedTask = await Task.findByIdAndUpdate(
@@ -57,7 +58,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete a Task
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
     try {
         const deletedTask = await Task.findByIdAndDelete(req.params.id);
 
