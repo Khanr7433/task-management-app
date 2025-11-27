@@ -36,4 +36,24 @@ router.get("/", async (req, res) => {
     }
 });
 
+// Update a Task
+router.put("/:id", async (req, res) => {
+    try {
+        const { title, description, status, dueDate } = req.body;
+        const updatedTask = await Task.findByIdAndUpdate(
+            req.params.id,
+            { title, description, status, dueDate },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedTask) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+
+        res.status(200).json(updatedTask);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
 export default router;
