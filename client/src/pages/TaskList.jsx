@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useMemo } from 'react';
 import taskService from '../services/taskService';
 import TaskItem from '../components/TaskItem';
 import TaskForm from '../components/TaskForm';
@@ -12,6 +12,11 @@ const TaskList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { logout } = useContext(AuthContext);
+
+    // Filter, Sort, Search States
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [sortBy, setSortBy] = useState('newest');
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -77,29 +82,93 @@ const TaskList = () => {
         }
     };
 
+    // Filter, Sort, Search Logic
+    const filteredTasks = useMemo(() => {
+        let result = [...tasks];
+
+        // Search
+        if (searchQuery) {
+            result = result.filter(task =>
+                task.title.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Filter
+        if (filterStatus !== 'all') {
+            result = result.filter(task => task.status === filterStatus);
+        }
+
+        // Sort
+        result.sort((a, b) => {
+            if (sortBy === 'newest') {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            } else if (sortBy === 'oldest') {
+                return new Date(a.createdAt) - new Date(b.createdAt);
+            } else if (sortBy === 'dueDate') {
+                // Handle cases where dueDate might be null or undefined
+                const dateA = a.dueDate ? new Date(a.dueDate) : new Date('9999-12-31'); // Push nulls to end
+                const dateB = b.dueDate ? new Date(b.dueDate) : new Date('9999-12-31'); // Push nulls to end
+                return dateA - dateB;
+            }
+            return 0;
+        });
+
+        return result;
+    }, [tasks, searchQuery, filterStatus, sortBy]);
+
     if (loading) return <div className="flex justify-center items-center h-screen">Loading tasks...</div>;
 
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar onLogout={logout} />
             <div className="container mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <h1 className="text-2xl font-bold text-gray-800">My Tasks</h1>
                     <button
                         onClick={handleAddTask}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm whitespace-nowrap"
                     >
                         Add New Task
                     </button>
                 </div>
 
+                {/* Controls */}
+                <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-col md:flex-row gap-4">
+                    <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="dueDate">Due Date</option>
+                    </select>
+                </div>
+
                 {error && <p className="text-red-500 mb-4">{error}</p>}
 
-                {tasks.length === 0 && !error ? (
-                    <p className="text-gray-500 text-center">No tasks found. Add one to get started!</p>
+                {filteredTasks.length === 0 && !error ? (
+                    <p className="text-gray-500 text-center py-8">No tasks found matching your criteria.</p>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {tasks.map((task) => (
+                        {filteredTasks.map((task) => (
                             <TaskItem
                                 key={task._id}
                                 task={task}

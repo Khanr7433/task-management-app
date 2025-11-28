@@ -7,6 +7,7 @@ const TaskForm = ({ onSubmit, initialData, onCancel }) => {
         status: 'pending',
         dueDate: '',
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -20,48 +21,54 @@ const TaskForm = ({ onSubmit, initialData, onCancel }) => {
     }, [initialData]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSubmit(formData);
+        setIsSubmitting(true);
+        try {
+            await onSubmit(formData);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Task' : 'Add New Task'}</h2>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                    {initialData ? 'Edit Task' : 'Add New Task'}
+                </h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Title</label>
                         <input
                             type="text"
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
+                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
-                            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Description</label>
                         <textarea
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows="3"
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Status</label>
                         <select
                             name="status"
                             value={formData.status}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="pending">Pending</option>
                             <option value="in-progress">In Progress</option>
@@ -69,28 +76,30 @@ const TaskForm = ({ onSubmit, initialData, onCancel }) => {
                         </select>
                     </div>
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Due Date</label>
                         <input
                             type="date"
                             name="dueDate"
                             value={formData.dueDate}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-                    <div className="flex justify-end space-x-2">
+                    <div className="flex justify-end space-x-4">
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition duration-200"
+                            disabled={isSubmitting}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200 disabled:bg-blue-400"
+                            disabled={isSubmitting}
                         >
-                            Save
+                            {isSubmitting ? 'Saving...' : (initialData ? 'Update Task' : 'Add Task')}
                         </button>
                     </div>
                 </form>
