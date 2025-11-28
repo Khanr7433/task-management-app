@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useContext } from 'react';
+import taskService from '../services/taskService';
 import TaskItem from '../components/TaskItem';
 import TaskForm from '../components/TaskForm';
 import Navbar from '../components/Navbar';
+import AuthContext from '../context/AuthContext';
 
 const TaskList = () => {
     const [tasks, setTasks] = useState([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const { logout } = useContext(AuthContext);
 
-    // Mock data for initial UI testing (replace with API call later)
     useEffect(() => {
         const fetchTasks = async () => {
-            // For now, we'll use mock data if API fails or is not ready
             try {
-                const res = await axios.get('/api/tasks');
-                setTasks(res.data);
-            } catch (error) {
-                console.error("Error fetching tasks:", error);
-                // Fallback mock data
-                setTasks([
-                    { _id: '1', title: 'Sample Task 1', description: 'Description 1', status: 'pending', dueDate: new Date().toISOString() },
-                    { _id: '2', title: 'Sample Task 2', description: 'Description 2', status: 'in-progress', dueDate: new Date().toISOString() },
-                ]);
+                const data = await taskService.getTasks();
+                setTasks(data);
+            } catch (err) {
+                console.error("Error fetching tasks:", err);
+                setError("Failed to load tasks.");
+            } finally {
+                setLoading(false);
             }
         };
         fetchTasks();
@@ -41,12 +41,11 @@ const TaskList = () => {
     const handleDeleteTask = async (id) => {
         if (window.confirm('Are you sure you want to delete this task?')) {
             try {
-                await axios.delete(`/api/tasks/${id}`);
+                await taskService.deleteTask(id);
                 setTasks(tasks.filter((t) => t._id !== id));
-            } catch (error) {
-                console.error("Error deleting task:", error);
-                // Optimistic update for mock
-                setTasks(tasks.filter((t) => t._id !== id));
+            } catch (err) {
+                console.error("Error deleting task:", err);
+                alert("Failed to delete task.");
             }
         }
     };
@@ -54,40 +53,35 @@ const TaskList = () => {
     const handleToggleStatus = async (task) => {
         const newStatus = task.status === 'completed' ? 'pending' : 'completed';
         try {
-            const res = await axios.put(`/api/tasks/${task._id}`, { ...task, status: newStatus });
-            setTasks(tasks.map((t) => (t._id === task._id ? res.data : t)));
-        } catch (error) {
-            console.error("Error updating status:", error);
-            // Optimistic update for mock
-            setTasks(tasks.map((t) => (t._id === task._id ? { ...t, status: newStatus } : t)));
+            const updatedTask = await taskService.updateTask(task._id, { ...task, status: newStatus });
+            setTasks(tasks.map((t) => (t._id === task._id ? updatedTask : t)));
+        } catch (err) {
+            console.error("Error updating status:", err);
+            alert("Failed to update status.");
         }
     };
 
     const handleFormSubmit = async (formData) => {
         try {
             if (editingTask) {
-                const res = await axios.put(`/api/tasks/${editingTask._id}`, formData);
-                setTasks(tasks.map((t) => (t._id === editingTask._id ? res.data : t)));
+                const updatedTask = await taskService.updateTask(editingTask._id, formData);
+                setTasks(tasks.map((t) => (t._id === editingTask._id ? updatedTask : t)));
             } else {
-                const res = await axios.post('/api/tasks', formData);
-                setTasks([...tasks, res.data]);
+                const newTask = await taskService.createTask(formData);
+                setTasks([...tasks, newTask]);
             }
             setIsFormOpen(false);
-        } catch (error) {
-            console.error("Error saving task:", error);
-            // Mock update
-            if (editingTask) {
-                setTasks(tasks.map((t) => (t._id === editingTask._id ? { ...t, ...formData } : t)));
-            } else {
-                setTasks([...tasks, { ...formData, _id: Date.now().toString() }]);
-            }
-            setIsFormOpen(false);
+        } catch (err) {
+            console.error("Error saving task:", err);
+            alert("Failed to save task.");
         }
     };
 
+    if (loading) return <div className="flex justify-center items-center h-screen">Loading tasks...</div>;
+
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
+            <Navbar onLogout={logout} />
             <div className="container mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-800">My Tasks</h1>
@@ -99,17 +93,23 @@ const TaskList = () => {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {tasks.map((task) => (
-                        <TaskItem
-                            key={task._id}
-                            task={task}
-                            onDelete={handleDeleteTask}
-                            onEdit={handleEditTask}
-                            onToggleStatus={handleToggleStatus}
-                        />
-                    ))}
-                </div>
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+
+                {tasks.length === 0 && !error ? (
+                    <p className="text-gray-500 text-center">No tasks found. Add one to get started!</p>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {tasks.map((task) => (
+                            <TaskItem
+                                key={task._id}
+                                task={task}
+                                onDelete={handleDeleteTask}
+                                onEdit={handleEditTask}
+                                onToggleStatus={handleToggleStatus}
+                            />
+                        ))}
+                    </div>
+                )}
 
                 {isFormOpen && (
                     <TaskForm
