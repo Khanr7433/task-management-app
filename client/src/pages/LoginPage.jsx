@@ -4,6 +4,7 @@ import AuthContext from '../context/AuthContext';
 
 const LoginPage = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await login(formData);
+            await login(formData, rememberMe);
             navigate('/tasks');
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
@@ -39,7 +40,7 @@ const LoginPage = () => {
                             required
                         />
                     </div>
-                    <div className="mb-6">
+                    <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
                         <input
                             type="password"
@@ -49,6 +50,16 @@ const LoginPage = () => {
                             className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         />
+                    </div>
+                    <div className="mb-6 flex items-center">
+                        <input
+                            type="checkbox"
+                            id="rememberMe"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="mr-2"
+                        />
+                        <label htmlFor="rememberMe" className="text-sm text-gray-600">Remember Me</label>
                     </div>
                     <button
                         type="submit"

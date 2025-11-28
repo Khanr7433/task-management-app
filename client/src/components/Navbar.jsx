@@ -16,7 +16,11 @@ const Navbar = () => {
                     <Link to="/tasks" className="hover:text-blue-200">Tasks</Link>
                     {user ? (
                         <button
-                            onClick={logout}
+                            onClick={() => {
+                                if (window.confirm('Are you sure you want to logout?')) {
+                                    logout();
+                                }
+                            }}
                             className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm"
                         >
                             Logout
