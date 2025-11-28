@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import TaskList from './pages/TaskList';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-blue-600">
-        Task Management App
-      </h1>
-    </div>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/tasks" replace />} />
+        <Route path="/tasks" element={<TaskList />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
