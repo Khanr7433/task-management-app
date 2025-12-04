@@ -24,52 +24,61 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+            <div className="max-w-md w-full bg-surface p-8 rounded-xl shadow-2xl border border-white/5 transition-all duration-300 hover:shadow-primary/10">
+                <h2 className="text-3xl font-bold mb-2 text-center text-white font-display">Welcome Back</h2>
+                <p className="text-center text-text-muted mb-8 text-sm">Please enter your details to sign in</p>
+                
+                {error && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg mb-6 animate-pulse">
+                        {error}
+                    </div>
+                )}
+                
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <label className="block text-text-muted text-sm font-medium mb-2 ml-1">Email Address</label>
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-background border border-white/10 rounded-lg px-4 py-3 text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
+                            placeholder="Enter your email"
                             required
                         />
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                    <div>
+                        <label className="block text-text-muted text-sm font-medium mb-2 ml-1">Password</label>
                         <input
                             type="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-background border border-white/10 rounded-lg px-4 py-3 text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
+                            placeholder="Enter your password"
                             required
                         />
                     </div>
-                    <div className="mb-6 flex items-center">
+                    <div className="flex items-center">
                         <input
                             type="checkbox"
                             id="rememberMe"
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
-                            className="mr-2"
+                            className="w-4 h-4 rounded border-gray-600 text-primary focus:ring-primary bg-background"
                         />
-                        <label htmlFor="rememberMe" className="text-sm text-gray-600">Remember Me</label>
+                        <label htmlFor="rememberMe" className="ml-2 text-sm text-text-muted cursor-pointer hover:text-text-main transition-colors">Remember Me</label>
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-200"
+                        className="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-primary/20"
                     >
-                        Login
+                        Sign In
                     </button>
                 </form>
-                <p className="mt-4 text-center text-sm">
-                    Don't have an account? <Link to="/register" className="text-blue-600 hover:underline">Register</Link>
+                <p className="mt-8 text-center text-sm text-text-muted">
+                    Don't have an account? <Link to="/register" className="text-primary hover:text-primary-hover font-medium hover:underline transition-colors">Register</Link>
                 </p>
             </div>
         </div>
